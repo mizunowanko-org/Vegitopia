@@ -1,4 +1,4 @@
-# 『ベジ・ウォーズ：大地の防衛線』仕様書 (Specification)
+# 『Vegitopia』仕様書 (Specification)
 
 ## 1. プロジェクト概要
 - **ジャンル**: 2D グリッドベース リアルタイム戦略ゲーム (RTS)
