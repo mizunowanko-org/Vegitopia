@@ -15,7 +15,7 @@ export class AISystem {
       } else if (unit instanceof Daikon) {
         this.updateFarmer(unit, grid);
       } else if (unit instanceof Chili) {
-        this.updateFighter(unit, allUnits);
+        this.updateFighter(unit, allUnits, grid);
       } else if (unit instanceof Aphid) {
         this.updatePest(unit, allUnits, grid);
       }
@@ -73,7 +73,7 @@ export class AISystem {
     this.wander(unit, grid);
   }
 
-  private updateFighter(unit: Chili, allUnits: Unit[]): void {
+  private updateFighter(unit: Chili, allUnits: Unit[], grid: TerrainGrid): void {
     // Find nearest enemy
     let nearestDist = Infinity;
     let nearestEnemy: Unit | null = null;
@@ -89,7 +89,7 @@ export class AISystem {
     if (nearestEnemy) {
       if (nearestDist <= unit.stats.attackRange) return; // in range, let combat handle it
       // Move toward enemy
-      this.stepToward(unit, nearestEnemy.col, nearestEnemy.row);
+      this.stepToward(unit, nearestEnemy.col, nearestEnemy.row, grid);
     }
   }
 
@@ -118,7 +118,7 @@ export class AISystem {
     }
 
     if (nearestVeggie) {
-      this.stepToward(unit, nearestVeggie.col, nearestVeggie.row);
+      this.stepToward(unit, nearestVeggie.col, nearestVeggie.row, grid);
       return;
     }
 
@@ -160,15 +160,25 @@ export class AISystem {
     }
   }
 
-  private stepToward(unit: Unit, targetCol: number, targetRow: number): void {
+  private stepToward(unit: Unit, targetCol: number, targetRow: number, grid: TerrainGrid): void {
     const dx = Math.sign(targetCol - unit.col);
     const dy = Math.sign(targetRow - unit.row);
-    if (Math.abs(targetCol - unit.col) >= Math.abs(targetRow - unit.row)) {
-      if (dx !== 0) unit.moveTo(unit.col + dx, unit.row);
-      else if (dy !== 0) unit.moveTo(unit.col, unit.row + dy);
+    const preferHorizontal = Math.abs(targetCol - unit.col) >= Math.abs(targetRow - unit.row);
+
+    const tryMove = (dc: number, dr: number): boolean => {
+      if ((dc !== 0 || dr !== 0) && grid.isPassable(unit.col + dc, unit.row + dr)) {
+        unit.moveTo(unit.col + dc, unit.row + dr);
+        return true;
+      }
+      return false;
+    };
+
+    if (preferHorizontal) {
+      if (tryMove(dx, 0)) return;
+      if (tryMove(0, dy)) return;
     } else {
-      if (dy !== 0) unit.moveTo(unit.col, unit.row + dy);
-      else if (dx !== 0) unit.moveTo(unit.col + dx, unit.row);
+      if (tryMove(0, dy)) return;
+      if (tryMove(dx, 0)) return;
     }
   }
 
