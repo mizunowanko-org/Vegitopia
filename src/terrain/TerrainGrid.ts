@@ -201,10 +201,61 @@ export class TerrainGrid {
     return TERRAIN_COLORS[terrain];
   }
 
+  /** BFS to find shortest path between two passable tiles. Returns the path (excluding start) or null. */
+  findPath(startCol: number, startRow: number, goalCol: number, goalRow: number): { col: number; row: number }[] | null {
+    if (!this.inBounds(startCol, startRow) || !this.inBounds(goalCol, goalRow)) return null;
+    if (startCol === goalCol && startRow === goalRow) return [];
+
+    const key = (c: number, r: number) => r * this.cols + c;
+    const visited = new Set<number>();
+    const prev = new Map<number, { col: number; row: number }>();
+    const queue: { col: number; row: number }[] = [{ col: startCol, row: startRow }];
+    visited.add(key(startCol, startRow));
+
+    const dirs = [{ dc: 1, dr: 0 }, { dc: -1, dr: 0 }, { dc: 0, dr: 1 }, { dc: 0, dr: -1 }];
+
+    while (queue.length > 0) {
+      const cur = queue.shift()!;
+      for (const d of dirs) {
+        const nc = cur.col + d.dc;
+        const nr = cur.row + d.dr;
+        const nk = key(nc, nr);
+        if (!this.inBounds(nc, nr) || visited.has(nk) || !this.isPassable(nc, nr)) continue;
+        visited.add(nk);
+        prev.set(nk, { col: cur.col, row: cur.row });
+        if (nc === goalCol && nr === goalRow) {
+          // Reconstruct path
+          const path: { col: number; row: number }[] = [];
+          let c = nc, r = nr;
+          while (c !== startCol || r !== startRow) {
+            path.push({ col: c, row: r });
+            const p = prev.get(key(c, r))!;
+            c = p.col;
+            r = p.row;
+          }
+          path.reverse();
+          return path;
+        }
+        queue.push({ col: nc, row: nr });
+      }
+    }
+    return null; // unreachable
+  }
+
+  /** Check if a tile is reachable from another via passable tiles. */
+  isReachable(fromCol: number, fromRow: number, toCol: number, toRow: number): boolean {
+    return this.findPath(fromCol, fromRow, toCol, toRow) !== null;
+  }
+
   generateMap(): void {
     // River running roughly through the middle
     const midRow = Math.floor(this.rows / 2);
+    // Bridge positions at roughly 1/3 and 2/3 across the map
+    const bridge1 = Math.floor(this.cols / 3);
+    const bridge2 = Math.floor((this.cols * 2) / 3);
     for (let c = 0; c < this.cols; c++) {
+      // Skip river tiles at bridge positions to create passable gaps
+      if (c === bridge1 || c === bridge2) continue;
       const offset = Math.floor(Math.sin(c * 0.3) * 2);
       for (let dr = -1; dr <= 1; dr++) {
         const r = midRow + offset + dr;
