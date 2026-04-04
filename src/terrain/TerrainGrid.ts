@@ -73,6 +73,16 @@ export class TerrainGrid {
     return this.distanceToRiver(col, row) <= BUILDABLE_DISTANCE;
   }
 
+  getBuildBlockedReason(col: number, row: number): string {
+    if (!this.inBounds(col, row)) return "マップの外だよ！";
+    const terrain = this.grid[row][col];
+    if (terrain === TerrainType.River) return "川の上には建てられないよ！";
+    if (terrain === TerrainType.Limestone) return "石灰岩の上には建てられないよ！";
+    if (terrain === TerrainType.Farm) return "もう畑があるよ！";
+    if (this.distanceToRiver(col, row) > BUILDABLE_DISTANCE) return "川から遠すぎるよ！";
+    return "ここには建てられないよ！";
+  }
+
   private distanceToRiver(col: number, row: number): number {
     let minDist = Infinity;
     for (const rt of this.riverTiles) {

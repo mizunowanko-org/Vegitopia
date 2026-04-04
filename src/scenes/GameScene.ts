@@ -151,25 +151,35 @@ export class GameScene extends Phaser.Scene {
   }
 
   private handleClick(pointer: Phaser.Input.Pointer): void {
-    const worldX = pointer.worldX;
-    const worldY = pointer.worldY;
-    const { col, row } = this.hud.worldToTile(worldX, worldY);
+    const camera = this.cameras.main;
+    const worldPoint = camera.getWorldPoint(pointer.x, pointer.y);
+    const { col, row } = this.hud.worldToTile(worldPoint.x, worldPoint.y);
 
     if (!this.grid.inBounds(col, row)) return;
 
     if (this.hud.placementMode === "build") {
       if (this.grid.isBuildable(col, row)) {
         this.grid.startBuilding(col, row);
+      } else {
+        const reason = this.grid.getBuildBlockedReason(col, row);
+        this.hud.showFeedback(reason);
       }
     } else if (this.hud.placementMode === "seed") {
-      this.grid.seedFarm(col, row);
+      if (!this.grid.seedFarm(col, row)) {
+        const farm = this.grid.getCompletedFarm(col, row);
+        if (!farm) {
+          this.hud.showFeedback("ここには畑がないよ！");
+        } else if (farm.seeded) {
+          this.hud.showFeedback("もう種まき済みだよ！");
+        }
+      }
     }
   }
 
   private handleHover(pointer: Phaser.Input.Pointer): void {
-    const worldX = pointer.worldX;
-    const worldY = pointer.worldY;
-    const { col, row } = this.hud.worldToTile(worldX, worldY);
+    const camera = this.cameras.main;
+    const worldPoint = camera.getWorldPoint(pointer.x, pointer.y);
+    const { col, row } = this.hud.worldToTile(worldPoint.x, worldPoint.y);
 
     this.highlightGraphics.clear();
 
@@ -182,8 +192,8 @@ export class GameScene extends Phaser.Scene {
     // Check for unit under cursor
     const hoveredUnit = this.units.find(u => {
       if (!u.alive) return false;
-      const dx = worldX - u.x;
-      const dy = worldY - u.y;
+      const dx = worldPoint.x - u.x;
+      const dy = worldPoint.y - u.y;
       return dx * dx + dy * dy <= (TILE_SIZE * 0.35) * (TILE_SIZE * 0.35);
     });
 

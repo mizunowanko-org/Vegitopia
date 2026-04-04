@@ -20,9 +20,11 @@ export class HUD {
   private scene: Phaser.Scene;
   private modeText: Phaser.GameObjects.Text;
   private infoText: Phaser.GameObjects.Text;
+  private feedbackText: Phaser.GameObjects.Text;
   private unitInfoText: Phaser.GameObjects.Text;
   private buildBtn: Phaser.GameObjects.Text;
   private seedBtn: Phaser.GameObjects.Text;
+  private feedbackTimer?: Phaser.Time.TimerEvent;
   private legendGraphics: Phaser.GameObjects.Graphics;
   placementMode: PlacementMode = null;
 
@@ -58,6 +60,14 @@ export class HUD {
     this.infoText = scene.add.text(10, 40, "", {
       fontSize: "12px",
       color: "#cccccc",
+    })
+      .setScrollFactor(0)
+      .setDepth(100);
+
+    this.feedbackText = scene.add.text(400, 14, "", {
+      fontSize: "14px",
+      color: "#ff6644",
+      fontStyle: "bold",
     })
       .setScrollFactor(0)
       .setDepth(100);
@@ -153,6 +163,16 @@ export class HUD {
 
   showTileInfo(col: number, row: number, terrain: string, extra: string): void {
     this.infoText.setText(`Tile (${col}, ${row}) — ${terrain}${extra ? "\n" + extra : ""}`);
+  }
+
+  showFeedback(message: string): void {
+    this.feedbackText.setText(message);
+    if (this.feedbackTimer) {
+      this.feedbackTimer.destroy();
+    }
+    this.feedbackTimer = this.scene.time.delayedCall(2000, () => {
+      this.feedbackText.setText("");
+    });
   }
 
   showUnitInfo(name: string, team: string, hp: number, maxHp: number): void {
