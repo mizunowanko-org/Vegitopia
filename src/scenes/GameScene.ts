@@ -179,6 +179,25 @@ export class GameScene extends Phaser.Scene {
     this.highlightGraphics.lineStyle(2, 0xffffff, 0.5);
     this.highlightGraphics.strokeRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 1, TILE_SIZE - 1);
 
+    // Check for unit under cursor
+    const hoveredUnit = this.units.find(u => {
+      if (!u.alive) return false;
+      const dx = worldX - u.x;
+      const dy = worldY - u.y;
+      return dx * dx + dy * dy <= (TILE_SIZE * 0.35) * (TILE_SIZE * 0.35);
+    });
+
+    if (hoveredUnit) {
+      this.hud.showUnitInfo(
+        hoveredUnit.getLabel(),
+        hoveredUnit.team,
+        hoveredUnit.hp,
+        hoveredUnit.stats.maxHp,
+      );
+    } else {
+      this.hud.clearUnitInfo();
+    }
+
     // Show info
     const terrain = this.grid.getTerrain(col, row);
     let extra = "";
@@ -201,17 +220,7 @@ export class GameScene extends Phaser.Scene {
 
   private spawnInitialUnits(): void {
     const midRow = Math.floor(MAP_ROWS / 2);
-    // Spawn veggies near the river
     this.addUnit(new Potato(this, 5, midRow - 4));
-    this.addUnit(new Potato(this, 7, midRow - 4));
-    this.addUnit(new Daikon(this, 6, midRow - 5));
-    this.addUnit(new Daikon(this, 8, midRow - 5));
-    this.addUnit(new Chili(this, 4, midRow - 3));
-    this.addUnit(new Chili(this, 9, midRow - 3));
-
-    // Spawn initial enemies on the same side as veggies (north of river)
-    this.addUnit(new Aphid(this, 0, 2));
-    this.addUnit(new Aphid(this, MAP_COLS - 1, 2));
   }
 
   private spawnEnemy(): void {
