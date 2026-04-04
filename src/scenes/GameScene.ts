@@ -220,17 +220,7 @@ export class GameScene extends Phaser.Scene {
 
   private spawnInitialUnits(): void {
     const midRow = Math.floor(MAP_ROWS / 2);
-    // Spawn veggies near the river
     this.addUnit(new Potato(this, 5, midRow - 4));
-    this.addUnit(new Potato(this, 7, midRow - 4));
-    this.addUnit(new Daikon(this, 6, midRow - 5));
-    this.addUnit(new Daikon(this, 8, midRow - 5));
-    this.addUnit(new Chili(this, 4, midRow - 3));
-    this.addUnit(new Chili(this, 9, midRow - 3));
-
-    // Spawn initial enemies at map edges
-    this.addUnit(new Aphid(this, 0, 2));
-    this.addUnit(new Aphid(this, MAP_COLS - 1, MAP_ROWS - 3));
   }
 
   private spawnEnemy(): void {
