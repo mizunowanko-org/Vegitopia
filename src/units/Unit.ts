@@ -20,6 +20,7 @@ export abstract class Unit {
   targetCol: number;
   targetRow: number;
   graphics: Phaser.GameObjects.Graphics;
+  labelText: Phaser.GameObjects.Text;
   alive: boolean = true;
   lastAttackTime: number = 0;
 
@@ -45,6 +46,15 @@ export abstract class Unit {
     this.prevRow = row;
     this.graphics = scene.add.graphics();
     this.graphics.setDepth(10);
+    this.labelText = scene.add.text(0, 0, this.getLabel()[0], {
+      fontSize: "11px",
+      fontStyle: "bold",
+      color: "#ffffff",
+      stroke: "#000000",
+      strokeThickness: 2,
+    });
+    this.labelText.setOrigin(0.5, 0.5);
+    this.labelText.setDepth(11);
   }
 
   get x(): number {
@@ -106,7 +116,10 @@ export abstract class Unit {
 
   draw(): void {
     this.graphics.clear();
-    if (!this.alive) return;
+    if (!this.alive) {
+      this.labelText.setVisible(false);
+      return;
+    }
 
     const cx = this.x;
     const cy = this.y;
@@ -115,6 +128,10 @@ export abstract class Unit {
     // Body
     this.graphics.fillStyle(this.getColor(), 1);
     this.graphics.fillCircle(cx, cy, radius);
+
+    // Label
+    this.labelText.setPosition(cx, cy);
+    this.labelText.setVisible(true);
 
     // HP bar
     const barWidth = TILE_SIZE * 0.8;
@@ -131,6 +148,7 @@ export abstract class Unit {
 
   destroy(): void {
     this.graphics.destroy();
+    this.labelText.destroy();
   }
 
   distanceTo(col: number, row: number): number {

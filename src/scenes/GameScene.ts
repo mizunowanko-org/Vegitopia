@@ -179,6 +179,25 @@ export class GameScene extends Phaser.Scene {
     this.highlightGraphics.lineStyle(2, 0xffffff, 0.5);
     this.highlightGraphics.strokeRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE - 1, TILE_SIZE - 1);
 
+    // Check for unit under cursor
+    const hoveredUnit = this.units.find(u => {
+      if (!u.alive) return false;
+      const dx = worldX - u.x;
+      const dy = worldY - u.y;
+      return dx * dx + dy * dy <= (TILE_SIZE * 0.35) * (TILE_SIZE * 0.35);
+    });
+
+    if (hoveredUnit) {
+      this.hud.showUnitInfo(
+        hoveredUnit.getLabel(),
+        hoveredUnit.team,
+        hoveredUnit.hp,
+        hoveredUnit.stats.maxHp,
+      );
+    } else {
+      this.hud.clearUnitInfo();
+    }
+
     // Show info
     const terrain = this.grid.getTerrain(col, row);
     let extra = "";
