@@ -142,44 +142,25 @@ export class AISystem {
   }
 
   private moveToward(unit: Unit, targetCol: number, targetRow: number, grid: TerrainGrid): void {
+    // Use BFS pathfinding to navigate around obstacles (rivers, limestone)
+    const path = grid.findPath(unit.col, unit.row, targetCol, targetRow);
+    if (path && path.length > 0) {
+      unit.moveTo(path[0].col, path[0].row);
+      return;
+    }
+    // Fallback: greedy movement if BFS fails (e.g., unreachable target)
     const dx = Math.sign(targetCol - unit.col);
     const dy = Math.sign(targetRow - unit.row);
-
-    // Try horizontal first, then vertical
     if (dx !== 0 && grid.isPassable(unit.col + dx, unit.row)) {
       unit.moveTo(unit.col + dx, unit.row);
     } else if (dy !== 0 && grid.isPassable(unit.col, unit.row + dy)) {
       unit.moveTo(unit.col, unit.row + dy);
-    } else if (dx !== 0 && dy !== 0) {
-      // Try the other axis
-      if (grid.isPassable(unit.col, unit.row + dy)) {
-        unit.moveTo(unit.col, unit.row + dy);
-      } else if (grid.isPassable(unit.col + dx, unit.row)) {
-        unit.moveTo(unit.col + dx, unit.row);
-      }
     }
   }
 
   private stepToward(unit: Unit, targetCol: number, targetRow: number, grid: TerrainGrid): void {
-    const dx = Math.sign(targetCol - unit.col);
-    const dy = Math.sign(targetRow - unit.row);
-    const preferHorizontal = Math.abs(targetCol - unit.col) >= Math.abs(targetRow - unit.row);
-
-    const tryMove = (dc: number, dr: number): boolean => {
-      if ((dc !== 0 || dr !== 0) && grid.isPassable(unit.col + dc, unit.row + dr)) {
-        unit.moveTo(unit.col + dc, unit.row + dr);
-        return true;
-      }
-      return false;
-    };
-
-    if (preferHorizontal) {
-      if (tryMove(dx, 0)) return;
-      if (tryMove(0, dy)) return;
-    } else {
-      if (tryMove(0, dy)) return;
-      if (tryMove(dx, 0)) return;
-    }
+    // Use BFS pathfinding (same as moveToward)
+    this.moveToward(unit, targetCol, targetRow, grid);
   }
 
   private wander(unit: Unit, grid: TerrainGrid): void {

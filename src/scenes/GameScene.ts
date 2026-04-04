@@ -224,16 +224,24 @@ export class GameScene extends Phaser.Scene {
   }
 
   private spawnEnemy(): void {
-    const edge = Math.floor(Math.random() * 4);
-    let col: number, row: number;
-    switch (edge) {
-      case 0: col = 0; row = Math.floor(Math.random() * MAP_ROWS); break;
-      case 1: col = MAP_COLS - 1; row = Math.floor(Math.random() * MAP_ROWS); break;
-      case 2: col = Math.floor(Math.random() * MAP_COLS); row = 0; break;
-      default: col = Math.floor(Math.random() * MAP_COLS); row = MAP_ROWS - 1; break;
-    }
-    if (this.grid.isPassable(col, row)) {
+    // Find a reference veggie position for reachability check
+    const veggie = this.units.find(u => u.alive && u.team === "veggie");
+    const maxAttempts = 10;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const edge = Math.floor(Math.random() * 4);
+      let col: number, row: number;
+      switch (edge) {
+        case 0: col = 0; row = Math.floor(Math.random() * MAP_ROWS); break;
+        case 1: col = MAP_COLS - 1; row = Math.floor(Math.random() * MAP_ROWS); break;
+        case 2: col = Math.floor(Math.random() * MAP_COLS); row = 0; break;
+        default: col = Math.floor(Math.random() * MAP_COLS); row = MAP_ROWS - 1; break;
+      }
+      if (!this.grid.isPassable(col, row)) continue;
+      // Ensure the spawn position can reach a veggie unit
+      if (veggie && !this.grid.isReachable(col, row, veggie.col, veggie.row)) continue;
       this.addUnit(new Aphid(this, col, row));
+      return;
     }
   }
 
